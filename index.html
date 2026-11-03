@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#12033a">
+  <meta name="description" content="Raspadita Online: elige tu cartón y descubre el resultado.">
+  <title>Raspadita Online - Raspa y Gana</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;font-family:Arial,sans-serif}
+    body{background:#12033a;color:#fff;min-height:100vh;padding-bottom:24px}
+    button,input,select{font:inherit}
+    .top{height:14px;background:repeating-linear-gradient(90deg,#ff6b6b 0 20px,#ffd93d 20px 40px,#6bcf7f 40px 60px,#4d96ff 60px 80px)}
+    .wrap{max-width:460px;margin:0 auto;padding:12px}
+    .brand{text-align:center;margin:10px 0 16px}
+    .brand h1{font-size:25px;line-height:1.2}
+    .badge{display:inline-block;background:#00a94f;padding:5px 11px;border-radius:999px;font-size:11px;margin-top:7px}
+    .header{display:flex;justify-content:space-between;align-items:center;background:#fff;color:#222;padding:12px 14px;border-radius:14px 14px 0 0;font-weight:bold}
+    .main{background:#f7f3ff;color:#222;border-radius:0 0 14px 14px;padding:16px}
+    .btn{width:100%;background:#ffcc00;color:#222;border:0;padding:14px;border-radius:999px;font-weight:bold;font-size:15px;margin:8px 0;cursor:pointer}
+    .btn:disabled{opacity:.5;cursor:not-allowed}
+    .btn-purple{background:#6c4bdb;color:#fff}.btn-green{background:#00a94f;color:#fff}
+    .input{width:100%;padding:12px 15px;border-radius:999px;border:1px solid #ccc;margin:6px 0;background:#fff;color:#222}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
+    .box{background:#fff;border:2px solid #d8cfee;border-radius:12px;padding:8px;text-align:center;cursor:pointer;min-width:0}
+    .box.sel{border-color:#00a94f;background:#eaffea;transform:scale(1.02)}
+    .thumb{min-height:52px;background:linear-gradient(135deg,#ffd93d,#ff9800);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:bold}
+    .num{font-size:12px;margin-top:5px}.num small{color:#16803c}
+    .linkbox{background:#fff;border:2px dashed #6c4bdb;padding:10px;border-radius:10px;overflow-wrap:anywhere;font-size:11px;color:#333;margin:8px 0}
+    .hidden{display:none!important}
+    .nav{display:flex;justify-content:space-between;align-items:center;font-size:12px;margin-top:8px}
+    .nav button{border:0;background:#eee;border-radius:8px;padding:7px 9px;cursor:pointer}
+    .hint{font-size:11px;color:#555;line-height:1.45;margin:8px 0}
+    #scratchWrap{position:relative;width:100%;height:280px;background:#fff;border-radius:12px;overflow:hidden;border:4px solid #ffcc00;margin:10px 0 4px}
+    #prizeGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:10px;height:100%}
+    .cell{background:#fff8d6;border-radius:10px;display:flex;align-items:center;justify-content:center;border:1px solid #e6c200}
+    #scratch{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
+    .res{background:#1a0b4e;color:#fff;border-radius:14px;padding:14px;text-align:center}
+    .monto{font-size:32px;color:#ffd93d;font-weight:bold;line-height:1.2}
+    .error{background:#ffe5e5;color:#8b1010;padding:12px;border-radius:10px;font-size:13px;margin:10px 0}
+    @media(max-width:360px){.main{padding:12px}.wrap{padding:8px}.monto{font-size:27px}}
+  </style>
+</head>
+<body>
+  <div class="top"></div>
+  <div class="wrap">
+    <section id="admin">
+      <div class="brand">
+        <h1>RASPADITA ONLINE</h1>
+        <span class="badge">PANEL SIN VENDEDORES</span>
+      </div>
+      <div class="main">
+        <label for="cant"><b>Cantidad de cartones</b></label>
+        <select id="cant" class="input">
+          <option value="1">1 cartón - 5.000 Gs</option>
+          <option value="2" selected>2 cartones - 10.000 Gs</option>
+          <option value="3">3 cartones - 15.000 Gs</option>
+          <option value="5">5 cartones - 25.000 Gs</option>
+        </select>
+        <label for="cli"><b>Nombre del cliente</b></label>
+        <input id="cli" class="input" maxlength="60" placeholder="Ej.: José González">
+        <button class="btn btn-purple" id="generate">🎟️ GENERAR LINK DE VENTA</button>
+        <div id="res" class="hidden" aria-live="polite">
+          <p class="hint">Comparte este enlace con el cliente. Los datos del juego viajan en el enlace y no dependen del almacenamiento de este navegador.</p>
+          <div class="linkbox" id="link"></div>
+          <button class="btn btn-green" id="copy">📋 COPIAR LINK</button>
+          <button class="btn" id="preview" style="background:#222;color:#fff">👁️ VER COMO CLIENTE</button>
+        </div>
+      </div>
+      <p class="hint" style="color:#fff;text-align:center;margin:12px 6px">Prototipo demostrativo: no procesa pagos ni valida premios.</p>
+    </section>
+
+    <section id="client" class="hidden">
+      <div class="header"><span>Raspa &amp; Gana</span><span style="background:#6c4bdb;color:#fff;padding:4px 8px;border-radius:999px;font-size:10px">RASPADITA ONLINE</span></div>
+      <div class="main">
+        <div id="loadError" class="error hidden">El enlace no contiene una venta válida. Solicita un enlace nuevo al vendedor.</div>
+        <div id="s1">
+          <h3 style="text-align:center">Hola, <span id="cName">Cliente</span> 👋</h3>
+          <p style="font-size:12px;text-align:center;margin-top:5px">Tienes <span id="cCant">2</span> cartón(es). Elige <span id="cCant2">2</span> por su número.</p>
+          <input class="input" placeholder="Busca tu número favorito" id="buscar" aria-label="Buscar número">
+          <div class="grid" id="grid"></div>
+          <div class="nav"><button id="prev">← Anterior</button><span id="pag">1/1</span><button id="next">Siguiente →</button></div>
+          <div style="font-size:11px;margin-top:8px">Elegidos <span id="count">0/2</span></div>
+          <div style="background:#eee;border-radius:999px;padding:8px;font-size:11px;margin-top:5px" id="elegidos">Elige tus cartones</div>
+          <button class="btn" id="btnConf" disabled>Confirmar y raspar</button>
+        </div>
+        <div id="s2" class="hidden">
+          <div style="display:flex;justify-content:space-between;align-items:center;font-size:11px"><span id="prog"></span><button id="close" style="background:#eee;border:0;padding:5px 9px;border-radius:999px;cursor:pointer">Cerrar</button></div>
+          <div id="scratchWrap"><div id="prizeGrid"></div><canvas id="scratch" aria-label="Área para raspar"></canvas></div>
+          <div style="font-size:10px;text-align:center">Raspa el cartón - <span id="pct">0%</span></div>
+        </div>
+        <div id="s3" class="hidden">
+          <div class="res">
+            <div class="monto" id="rMonto"></div>
+            <div style="background:#fff;color:#222;border-radius:10px;padding:8px;margin:8px 0;font-size:11px">RESULTADO DEL CARTÓN<br><b id="rName"></b></div>
+            <div style="display:flex;justify-content:space-between;background:#fff;color:#222;border-radius:10px;padding:8px;font-size:11px"><div>N° CARTÓN<br><b id="rNum" style="font-size:18px"></b></div><div>SERIE<br><b>RASP-01</b></div></div>
+            <button class="btn" id="nextCarton">Siguiente cartón →</button>
+            <button class="btn btn-green" id="save">💾 GUARDAR CAPTURA</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+<script>
+  // Este prototipo genera resultados en el navegador; no es apropiado para validar pagos o premios reales.
+  const premios=[
+    {icon:'🐦',txt:'5.000 GS',prob:25},{icon:'⚓',txt:'10.000 GS',prob:10},
+    {icon:'🃏',txt:'20.000 GS',prob:8},{icon:'👑',txt:'100.000 GS',prob:2},
+    {icon:'💰',txt:'5.000.000 GS',prob:.3},{icon:'☂️',txt:'500.000 GS',prob:.7},
+    {icon:'🍀',txt:'0',prob:54}
+  ];
+  const PS=6;
+  let allCartones=[],sels=[],pagIdx=0,need=2,nombre='Cliente',cIdx=0,filtro='',down=false,ct=0,finished=false;
+  const $=id=>document.getElementById(id);
+  function pick(){let r=Math.random()*100,a=0;for(const p of premios){a+=p.prob;if(r<a)return p;}return premios[premios.length-1];}
+  function uniqueNumber(used){let n;do{n=60000+Math.floor(Math.random()*39999);}while(used.has(n));used.add(n);return n;}
+  function encodeData(data){return btoa(unescape(encodeURIComponent(JSON.stringify(data))));}
+  function decodeData(text){return JSON.parse(decodeURIComponent(escape(atob(text))));}
+  function gen(){
+    need=parseInt($('cant').value,10);nombre=$('cli').value.trim()||'Cliente';
+    const used=new Set();allCartones=Array.from({length:24},()=>({num:uniqueNumber(used),premio:pick()}));
+    const id='RO'+Date.now().toString(36).toUpperCase();
+    const url=new URL(location.href);url.search='';url.hash='';url.searchParams.set('orden',id);url.searchParams.set('datos',encodeData({cant:need,nombre,cartones:allCartones}));
+    $('link').textContent=url.href;$('res').classList.remove('hidden');$('copy').textContent='📋 COPIAR LINK';
+  }
+  async function copyLink(){try{await navigator.clipboard.writeText($('link').textContent);$('copy').textContent='✅ LINK COPIADO';}catch(_){const range=document.createRange();range.selectNodeContents($('link'));const selection=getSelection();selection.removeAllRanges();selection.addRange(range);alert('No se pudo copiar automáticamente. Selecciona y copia el enlace.');}}
+  function init(){
+    const params=new URLSearchParams(location.search);if(!params.has('orden'))return;
+    $('admin').classList.add('hidden');$('client').classList.remove('hidden');
+    try{
+      const d=decodeData(params.get('datos')||'');
+      if(!d||!Array.isArray(d.cartones)||!Number.isInteger(d.cant)||d.cant<1||d.cant>5||d.cartones.length<d.cant)throw new Error('invalid');
+      allCartones=d.cartones;need=d.cant;nombre=String(d.nombre||'Cliente').slice(0,60);
+      $('cName').textContent=nombre;$('cCant').textContent=need;$('cCant2').textContent=need;
+      $('buscar').addEventListener('input',()=>{filtro=$('buscar').value.trim();pagIdx=0;render();});
+      $('prev').onclick=()=>pag(-1);$('next').onclick=()=>pag(1);$('btnConf').onclick=conf;$('close').onclick=()=>location.href=location.pathname;
+      $('nextCarton').onclick=nextCarton;$('save').onclick=()=>window.print();render();
+    }catch(_){$('loadError').classList.remove('hidden');$('s1').classList.add('hidden');}
+  }
+  function render(){
+    const grid=$('grid');grid.innerHTML='';
+    const list=allCartones.map((c,i)=>({...c,idx:i})).filter(c=>String(c.num).includes(filtro));
+    const pages=Math.max(1,Math.ceil(list.length/PS));pagIdx=Math.min(pagIdx,pages-1);
+    list.slice(pagIdx*PS,(pagIdx+1)*PS).forEach(c=>{
+      const div=document.createElement('button');div.type='button';div.className='box'+(sels.includes(c.idx)?' sel':'');div.setAttribute('aria-pressed',String(sels.includes(c.idx)));
+      div.innerHTML='<div class="thumb">N° '+Number(c.num)+'</div><div class="num">N° '+Number(c.num)+'<br><small>DISPONIBLE</small></div>';
+      div.onclick=()=>{const pos=sels.indexOf(c.idx);if(pos>-1)sels.splice(pos,1);else if(sels.length<need)sels.push(c.idx);else{alert('Solo puedes elegir '+need+' cartón(es).');return;}render();};grid.appendChild(div);
+    });
+    $('pag').textContent=(pagIdx+1)+'/'+pages;$('prev').disabled=pagIdx===0;$('next').disabled=pagIdx>=pages-1;
+    $('count').textContent=sels.length+'/'+need;$('elegidos').textContent=sels.length?sels.map(i=>allCartones[i].num).join(', '):'Elige tus cartones';$('btnConf').disabled=sels.length!==need;
+  }
+  function pag(d){const pages=Math.max(1,Math.ceil((filtro?allCartones.filter(c=>String(c.num).includes(filtro)).length:allCartones.length)/PS));pagIdx=Math.max(0,Math.min(pages-1,pagIdx+d));render();}
+  function conf(){cIdx=0;$('s1').classList.add('hidden');$('s2').classList.remove('hidden');showCarton();}
+  function showCarton(){
+    const c=allCartones[sels[cIdx]];$('prog').textContent=`Cartón ${cIdx+1} de ${sels.length} - ${c.num}`;
+    const icons=c.premio.txt==='0'?Array.from({length:9},()=>premios[Math.floor(Math.random()*premios.length)].icon):[c.premio.icon,c.premio.icon,c.premio.icon,...Array.from({length:6},()=>premios.filter(x=>x.icon!==c.premio.icon)[Math.floor(Math.random()*6)].icon)];
+    icons.sort(()=>Math.random()-.5);$('prizeGrid').innerHTML='';icons.forEach(ic=>{const cell=document.createElement('div');cell.className='cell';cell.textContent=ic;cell.style.fontSize='24px';$('prizeGrid').appendChild(cell);});initScratch();
+  }
+  function initScratch(){
+    const cv=$('scratch'),wrap=$('scratchWrap'),cx=cv.getContext('2d');cv.width=wrap.clientWidth;cv.height=wrap.clientHeight;
+    cx.globalCompositeOperation='source-over';cx.fillStyle='#b9b9b9';cx.fillRect(0,0,cv.width,cv.height);cx.fillStyle='#555';cx.font='bold 16px Arial';cx.textAlign='center';cx.fillText('TOCA Y RASPA',cv.width/2,cv.height/2);
+    ct=0;finished=false;$('pct').textContent='0%';
+    cv.onpointerdown=e=>{down=true;cv.setPointerCapture(e.pointerId);scratch(e);};cv.onpointerup=()=>down=false;cv.onpointercancel=()=>down=false;cv.onpointermove=e=>scratch(e);
+  }
+  function scratch(e){if(!down||finished)return;const cv=$('scratch'),rect=cv.getBoundingClientRect(),cx=cv.getContext('2d');cx.globalCompositeOperation='destination-out';cx.beginPath();cx.arc(e.clientX-rect.left,e.clientY-rect.top,24,0,Math.PI*2);cx.fill();ct++;$('pct').textContent=Math.min(100,Math.floor(ct/36*100))+'%';if(ct>=36)finish();}
+  function finish(){if(finished)return;finished=true;const c=allCartones[sels[cIdx]];$('s2').classList.add('hidden');$('s3').classList.remove('hidden');$('rMonto').innerHTML=c.premio.txt==='0'?'¡CASI!<br><span style="font-size:18px">Seguí intentando</span>':'¡GANASTE!<br>'+String(c.premio.txt);$('rNum').textContent=c.num;$('rName').textContent=nombre;$('nextCarton').textContent=cIdx===sels.length-1?'Terminar':'Siguiente cartón →';}
+  function nextCarton(){cIdx++;if(cIdx<sels.length){$('s3').classList.add('hidden');$('s2').classList.remove('hidden');showCarton();}else location.href=location.pathname;}
+  $('generate').onclick=gen;$('copy').onclick=copyLink;$('preview').onclick=()=>{if($('link').textContent)window.open($('link').textContent,'_blank','noopener');};
+  window.addEventListener('resize',()=>{if(!$('s2').classList.contains('hidden'))initScratch();});window.onload=init;
+</script>
+</body>
+</html>
