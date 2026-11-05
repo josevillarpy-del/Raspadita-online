@@ -1,0 +1,705 @@
+Plataforma de Raspaditas Online - Admin & Juego
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Raspaditas Premium Online</title>
+<!-- Tailwind CSS para un diseño moderno y responsivo -->
+<script src="https://cdn.tailwindcss.com"></script>
+<!-- Google Fonts para una tipografía elegante -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<style>
+body {
+font-family: 'Inter', sans-serif;
+background-color: #0f172a;
+color: #f8fafc;
+}
+.glass {
+background: rgba(30, 41, 59, 0.7);
+backdrop-filter: blur(12px);
+
+border: 1px solid rgba(255, 255, 255, 0.05);
+}
+.gold-glow {
+box-shadow: 0 0 20px rgba(234, 179, 8, 0.2);
+}
+/* Animación de confeti personalizada mediante CSS */
+@keyframes confetti-fall {
+0% { transform: translateY(-10px) rotate(0deg); opacity: 1; }
+100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+}
+.confetti {
+position: absolute;
+width: 10px;
+height: 10px;
+animation: confetti-fall 3s linear infinite;
+}
+</style>
+</head>
+<body class="min-h-screen flex flex-col justify-between antialiased selection:bg-yellow-500 selection:text-slate-900">
+
+<!-- CONTENEDOR PRINCIPAL DINÁMICO -->
+<main class="flex-grow container mx-auto px-4 py-8 max-w-6xl">
+
+<!-- ======================================================== -->
+<!-- PANEL DE CONTROL DEL ADMINISTRADOR -->
+<!-- ======================================================== -->
+<div id="admin-panel" class="hidden space-y-8 animate-fadeIn">
+<!-- Encabezado Admin -->
+<div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-slate-800 pb-6">
+<div>
+<h1 class="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-amber-500">
+Raspaditas Premium <span class="text-sm font-semibold px-2 py-1 bg-amber-500/10 text-amber-400 rounded-md ml-2 border border-amber-500/20">Panel Admin</span>
+</h1>
+<p class="text-slate-400 text-sm mt-1">Generación segura de boletos únicos de un solo uso y control de raspado en tiempo real.</p>
+</div>
+<div class="flex items-center gap-2 bg-slate-800/50 p-1.5 rounded-lg border border-slate-700">
+<span class="text-xs font-semibold px-2.5 py-1 bg-emerald-500/20 text-emerald-400 rounded-md flex items-center gap-1.5">
+<span class="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span> Sincronizado
+</span>
+
+</div>
+</div>
+
+<!-- Métricas Generales -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+<div class="glass p-5 rounded-2xl shadow-xl">
+<p class="text-slate-400 text-xs font-medium uppercase tracking-wider">Total Generados</p>
+<p id="stat-total" class="text-3xl font-bold mt-1 text-slate-100">0</p>
+</div>
+<div class="glass p-5 rounded-2xl shadow-xl">
+<p class="text-slate-400 text-xs font-medium uppercase tracking-wider">Disponibles</p>
+<p id="stat-available" class="text-3xl font-bold mt-1 text-emerald-400">0</p>
+</div>
+<div class="glass p-5 rounded-2xl shadow-xl">
+<p class="text-slate-400 text-xs font-medium uppercase tracking-wider">Ya Raspados</p>
+<p id="stat-scratched" class="text-3xl font-bold mt-1 text-rose-400">0</p>
+</div>
+<div class="glass p-5 rounded-2xl shadow-xl">
+<p class="text-slate-400 text-xs font-medium uppercase tracking-wider">Premios Entregados</p>
+
+<p id="stat-winners" class="text-3xl font-bold mt-1 text-yellow-400">0</p>
+</div>
+</div>
+
+<!-- Sección de Creación y Listado -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<!-- Creador de Boletos -->
+<div class="glass p-6 rounded-2xl shadow-2xl h-fit border border-slate-800">
+<h2 class="text-xl font-bold mb-4 text-slate-100 flex items-center gap-2">
+<span>✨</span> Crear Nuevo Boleto
+</h2>
+<p class="text-xs text-slate-400 mb-6">El sistema aplicará una probabilidad matemática exacta del 30% de ganar por cada lote o boleto individual creado.</p>
+
+<div class="space-y-4">
+<div>
+<label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Nombre del Jugador (Opcional)</label>
+<input type="text" id="input-player" placeholder="Ej: Juan Pérez" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-slate-200 placeholder-slate-500 focus:outline-none focus:border-yellow-500 transition-colors">
+</div>
+<button id="btn-generate" class="w-full bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-400 hover:to-amber-500 text-slate-950 font-bold py-3.5 px-4 rounded-xl shadow-lg transition-all transform hover:-translate-y-0.5 active:translate-y-0 font-semibold text-center flex justify-center items-center gap-2 gold-glow">
+
+Generar Enlace Único
+</button>
+</div>
+</div>
+
+<!-- Tabla de Control de Enlaces -->
+<div class="lg:col-span-2 glass rounded-2xl shadow-2xl overflow-hidden border border-slate-800 flex flex-col justify-between">
+<div class="p-6 pb-2">
+<h2 class="text-xl font-bold text-slate-100">Enlaces Activos y Estado</h2>
+<p class="text-xs text-slate-400 mt-1">Los cambios en los boletos se reflejan al instante sin necesidad de recargar la página.</p>
+</div>
+
+<div class="overflow-x-auto max-h-[400px] overflow-y-auto px-6">
+<table class="w-full text-left border-collapse mt-4">
+<thead>
+<tr class="border-b border-slate-800 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+<th class="py-3 px-2">Jugador</th>
+<th class="py-3 px-2">Premio Oculto</th>
+<th class="py-3 px-2">Estado</th>
+
+<th class="py-3 px-2 text-right">Acciones</th>
+</tr>
+</thead>
+<tbody id="tickets-table-body" class="divide-y divide-slate-800/50 text-sm">
+<!-- Filas dinámicas -->
+</tbody>
+</table>
+<div id="empty-state" class="hidden text-center py-12 text-slate-500">
+No hay enlaces generados todavía. Crea uno usando el panel izquierdo.
+</div>
+</div>
+<div class="p-4 bg-slate-900/40 border-t border-slate-800 text-right">
+<button id="btn-clear-all" class="text-xs text-rose-400 hover:text-rose-300 font-medium transition-colors">Limpiar Base de Datos</button>
+</div>
+</div>
+</div>
+</div>
+
+<!-- ======================================================== -->
+
+<!-- INTERFAZ DEL JUGADOR (RASPADITA) -->
+<!-- ======================================================== -->
+<div id="player-view" class="hidden max-w-md mx-auto space-y-6 animate-fadeIn py-4">
+
+<!-- Estado de Boleto Ya Usado -->
+<div id="player-scratched-screen" class="hidden glass p-8 rounded-3xl text-center space-y-6 border border-rose-500/20 shadow-2xl relative overflow-hidden">
+<div class="absolute -top-10 -right-10 w-32 height-32 bg-rose-500/10 rounded-full blur-3xl"></div>
+<div class="w-16 h-16 bg-rose-500/10 text-rose-400 rounded-full flex items-center justify-center mx-auto text-2xl border border-rose-500/20">🔒</div>
+<h2 class="text-2xl font-extrabold text-slate-100">Boleto Ya Utilizado</h2>
+<p class="text-slate-400 text-sm leading-relaxed">Lo sentimos, este enlace de raspadita caducó porque ya fue raspado previamente. Cada código tiene un único uso de seguridad.</p>
+<div class="p-4 bg-slate-900/60 rounded-xl border border-slate-800 text-xs text-slate-500">
+Si crees que es un error, por favor ponte en contacto con el administrador que te envió el link.
+</div>
+</div>
+
+<!-- Juego Activo -->
+<div id="player-game-screen" class="hidden space-y-6">
+<!-- Info Jugador -->
+<div class="text-center space-y-1">
+
+<p class="text-yellow-400 text-xs font-bold uppercase tracking-widest">¡Suerte de la Buena!</p>
+<h2 id="player-greeting" class="text-2xl font-extrabold text-slate-100">Tu Raspadita Digital</h2>
+<p class="text-slate-400 text-xs">Raspa más del 50% de la tarjeta para descubrir si ganaste.</p>
+</div>
+
+<!-- CONTENEDOR DE LA RASPADITA -->
+<div class="relative mx-auto w-[340px] h-[340px] bg-slate-950 rounded-2xl overflow-hidden shadow-2xl border-4 border-slate-800 gold-glow">
+
+<!-- Capa Inferior: Grid de 3x3 Revelado -->
+<div id="scratch-grid" class="absolute inset-0 grid grid-cols-3 grid-rows-3 gap-2 p-2 bg-slate-900">
+<!-- Se genera dinámicamente con 9 cajas -->
+</div>
+
+<!-- Capa Superior: Canvas de Raspado -->
+<canvas id="scratch-canvas" width="332" height="332" class="absolute inset-1 rounded-xl cursor-crosshair touch-none z-10 transition-opacity duration-500"></canvas>
+</div>
+
+<!-- Cartel de Resultado -->
+<div id="result-card" class="hidden glass p-6 rounded-2xl text-center space-y-4 border transform scale-95 opacity-0 transition-all duration-500">
+
+<h3 id="result-title" class="text-2xl font-extrabold"></h3>
+<p id="result-message" class="text-sm text-slate-400"></p>
+<div id="result-prize-box" class="hidden inline-block px-6 py-2.5 bg-yellow-500/10 text-yellow-400 border border-yellow-500/30 rounded-xl font-bold text-lg"></div>
+<div>
+<button id="btn-player-whatsapp" class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 px-5 rounded-xl text-sm transition-all shadow-lg">
+<span>💬</span> Notificar Resultado por WhatsApp
+</button>
+</div>
+</div>
+</div>
+
+<!-- Error de Boleto Inválido/No Encontrado -->
+<div id="player-invalid-screen" class="hidden glass p-8 rounded-3xl text-center space-y-4 border border-slate-800 shadow-2xl">
+<div class="text-4xl">⚠️</div>
+<h2 class="text-xl font-bold text-slate-200">Enlace Inválido</h2>
+<p class="text-slate-400 text-sm">El identificador de este boleto no existe o el enlace está mal estructurado. Solicita uno nuevo.</p>
+<a href="?" class="inline-block text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-2 rounded-xl transition-colors">Ir al Inicio</a>
+</div>
+</div>
+
+</main>
+
+<!-- Pie de Página Fijo -->
+<footer class="w-full text-center py-4 border-t border-slate-900 text-slate-600 text-xs">
+© 2026 Plataforma Segura Anti-Fraude de Raspaditas Online
+</footer>
+
+<!-- Contenedor global de efectos de confeti -->
+<div id="confetti-container" class="fixed inset-0 pointer-events-none z-50 overflow-hidden"></div>
+
+<!-- ======================================================== -->
+<!-- LÓGICA DE JUEGO Y ADMINISTRACIÓN DE DATOS -->
+<!-- ======================================================== -->
+<script>
+// CONFIGURACIÓN DE PREMIOS DISPONIBLES
+const CONFIG_PREMIOS = ['5.000', '10.000', '20.000', '100.000', '500.000', '1.000.000', '3.000.000', 'Inténtalo de nuevo'];
+const PROBABILIDAD_GANAR = 0.30; // 30% estricto de probabilidad de ganar
+
+// Motor de Sonidos integrado usando Web Audio API para una experiencia inmersiva sin recursos externos
+
+const Sonidos = {
+ctx: null,
+init() { if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)(); },
+playScratch() {
+this.init();
+let osc = this.ctx.createOscillator();
+let gain = this.ctx.createGain();
+osc.type = 'triangle';
+osc.frequency.setValueAtTime(Math.random() * 150 + 100, this.ctx.currentTime);
+gain.gain.setValueAtTime(0.04, this.ctx.currentTime);
+gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.08);
+osc.connect(gain);
+gain.connect(this.ctx.destination);
+osc.start(); osc.stop(this.ctx.currentTime + 0.08);
+},
+playWin() {
+this.init();
+let now = this.ctx.currentTime;
+[523.25, 659.25, 783.99, 1046.50].forEach((f, i) => {
+
+let osc = this.ctx.createOscillator();
+let gain = this.ctx.createGain();
+osc.type = 'sine';
+osc.frequency.setValueAtTime(f, now + i * 0.1);
+gain.gain.setValueAtTime(0.1, now + i * 0.1);
+gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.1 + 0.4);
+osc.connect(gain); gain.connect(this.ctx.destination);
+osc.start(now + i * 0.1); osc.stop(now + i * 0.1 + 0.4);
+});
+},
+playLose() {
+this.init();
+let now = this.ctx.currentTime;
+let osc = this.ctx.createOscillator();
+let gain = this.ctx.createGain();
+osc.type = 'sawtooth';
+osc.frequency.setValueAtTime(220, now);
+osc.frequency.linearRampToValueAtTime(110, now + 0.5);
+gain.gain.setValueAtTime(0.1, now);
+
+gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+osc.connect(gain); gain.connect(this.ctx.destination);
+osc.start(); osc.stop(now + 0.5);
+}
+};
+
+// BASE DE DATOS LOCAL SEGURA (Sincronizada entre pestañas de forma nativa)
+const DB = {
+getTickets() {
+return JSON.parse(localStorage.getItem('raspaditas_tickets')) || [];
+},
+saveTickets(tickets) {
+localStorage.setItem('raspaditas_tickets', JSON.stringify(tickets));
+// Disparar evento para actualizar vistas locales instantáneamente
+window.dispatchEvent(new Event('storage_update'));
+},
+addTicket(playerName) {
+const tickets = this.getTickets();
+const id = 'resp-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+
+// Aplicar lógica estricta de asignación de premios según el 30% de probabilidad solicitado
+const esGanador = Math.random() < PROBABILIDAD_GANAR;
+let celdas = [];
+let premioAsignado = 'Ninguno';
+
+if (esGanador) {
+// Seleccionar un premio en dinero real para el trío ganador
+const premiosDinero = CONFIG_PREMIOS.filter(p => p !== 'Inténtalo de nuevo');
+premioAsignado = premiosDinero[Math.floor(Math.random() * premiosDinero.length)];
+
+// Colocar exactamente 3 copias para ganar
+celdas.push(premioAsignado, premioAsignado, premioAsignado);
+
+// Llenar el resto asegurando que no se forme otro trío accidental
+let poolRestante = [];
+CONFIG_PREMIOS.forEach(p => { if(p !== premioAsignado) { poolRestante.push(p); poolRestante.push(p); } });
+for (let i = 0; i < 6; i++) {
+let randIndex = Math.floor(Math.random() * poolRestante.length);
+
+celdas.push(poolRestante.splice(randIndex, 1)[0]);
+}
+} else {
+// Generar un boleto perdedor sin tríos. Creamos una bolsa balanceada con máximo 2 de cada uno.
+let poolSegura = [];
+CONFIG_PREMIOS.forEach(p => { poolSegura.push(p); poolSegura.push(p); });
+for (let i = 0; i < 9; i++) {
+let randIndex = Math.floor(Math.random() * poolSegura.length);
+celdas.push(poolSegura.splice(randIndex, 1)[0]);
+}
+}
+
+// Mezclar de forma aleatoria la cuadrícula de 3x3
+celdas.sort(() => Math.random() - 0.5);
+
+const nuevoBoleto = {
+id: id,
+jugador: playerName.trim() || 'Jugador Anónimo',
+fecha: new Date().toLocaleDateString(),
+
+celdas: celdas,
+esGanador: esGanador,
+premio: esGanador ? premioAsignado : 'Ninguno',
+estado: 'Disponible' // Estados posibles: Disponible, Raspado
+};
+
+tickets.unshift(nuevoBoleto);
+this.saveTickets(tickets);
+return nuevoBoleto;
+},
+marcarComoRaspado(id) {
+const tickets = this.getTickets();
+const index = tickets.findIndex(t => t.id === id);
+if (index !== -1 && tickets[index].estado === 'Disponible') {
+tickets[index].estado = 'Raspado';
+this.saveTickets(tickets);
+return tickets[index];
+}
+return null;
+
+}
+};
+
+// ENRUTADOR DINÁMICO DE LA APLICACIÓN
+function router() {
+const params = new URLSearchParams(window.location.search);
+const ticketId = params.get('ticket');
+
+if (ticketId) {
+// Modo Vista del Jugador
+document.getElementById('admin-panel').classList.add('hidden');
+document.getElementById('player-view').classList.remove('hidden');
+initPlayerGame(ticketId);
+} else {
+// Modo Administrador
+document.getElementById('player-view').classList.add('hidden');
+document.getElementById('admin-panel').classList.remove('hidden');
+initAdminPanel();
+}
+
+}
+
+// ======================================================== -->
+// LOGICA DE LA VISTA DEL ADMINISTRADOR -->
+// ======================================================== -->
+function initAdminPanel() {
+renderTicketsTable();
+updateStats();
+
+// Desvincular listeners previos para evitar duplicados
+document.getElementById('btn-generate').onpointerdown = () => {
+const nameInput = document.getElementById('input-player');
+DB.addTicket(nameInput.value);
+nameInput.value = '';
+};
+
+document.getElementById('btn-clear-all').onpointerdown = () => {
+if(confirm('¿Estás seguro de que deseas eliminar todo el historial de boletos?')) {
+localStorage.removeItem('raspaditas_tickets');
+
+window.dispatchEvent(new Event('storage_update'));
+}
+};
+}
+
+function updateStats() {
+const tickets = DB.getTickets();
+const total = tickets.length;
+const available = tickets.filter(t => t.estado === 'Disponible').length;
+const scratched = tickets.filter(t => t.estado === 'Raspado').length;
+const winners = tickets.filter(t => t.estado === 'Raspado' && t.esGanador).length;
+
+document.getElementById('stat-total').innerText = total;
+document.getElementById('stat-available').innerText = available;
+document.getElementById('stat-scratched').innerText = scratched;
+document.getElementById('stat-winners').innerText = winners;
+}
+
+function renderTicketsTable() {
+
+const tickets = DB.getTickets();
+const tbody = document.getElementById('tickets-table-body');
+const emptyState = document.getElementById('empty-state');
+
+tbody.innerHTML = '';
+
+if (tickets.length === 0) {
+emptyState.classList.remove('hidden');
+return;
+} else {
+emptyState.classList.add('hidden');
+}
+
+tickets.forEach(ticket => {
+const tr = document.createElement('tr');
+tr.className = 'border-b border-slate-800/40 hover:bg-slate-800/20 transition-colors';
+
+const urlBoleto = ${window.location.origin}${window.location.pathname}?ticket=${ticket.id}; const textoCompartir =¡Hola ${ticket.jugador}! 🎉 Te ganaste una Raspadita Online Premium. Entra aquí para raspar tu boleto único: ${urlBoleto}`;
+
+const urlWhatsapp = https://whatsapp.com{encodeURIComponent(textoCompartir)};
+
+// Badge de estado estilizado
+let badgeEstado = <span class="px-2 py-0.5 rounded text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"&gt;Disponible&lt;/span>;
+if (ticket.estado === 'Raspado') {
+if (ticket.esGanador) {
+badgeEstado = <span class="px-2 py-0.5 rounded text-xs font-bold bg-yellow-500/10 text-yellow-400 border border-yellow-500/20"&gt;🏆 Ganó&lt;/span>;
+} else {
+badgeEstado = <span class="px-2 py-0.5 rounded text-xs font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20"&gt;❌ Usado&lt;/span>;
+}
+}
+
+tr.innerHTML = &lt;td class="py-3.5 px-2 font-semibold text-slate-200"&gt; &lt;div&gt;${escapeHTML(ticket.jugador)}</div>
+<div class="text-[10px] text-slate-500 font-normal">{ticket.id}</div>
+</td>
+<td class="py-3.5 px-2 text-xs font-mono text-slate-400">
+latex
+{ticket.esGanador ? `💰 &lt;span class="text-yellow-400 font-bold"&gt;
+
+{ticket.premio}</span>` : 'Sin Premio'}
+
+</td>
+<td class="py-3.5 px-2">{urlBoleto}', this)" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs px-2.5 py-1.5 rounded-lg transition-all inline-flex items-center gap-1">
+📋 Copiar Link
+</button>
+<a href="${urlWhatsapp}" target="_blank" class="bg-emerald-600/20 hover:bg-emerald-600 text-emerald-400 hover:text-white text-xs px-2.5 py-1.5 rounded-lg transition-all inline-flex items-center gap-1 border border-emerald-500/10"&gt; 💬 Enviar &lt;/a&gt; &lt;/td&gt;;
+tbody.appendChild(tr);
+});
+}
+
+function copiarAlPortapapeles(texto, elemento) {
+const inputAux = document.createElement('input');
+inputAux.setAttribute('value', texto);
+document.body.appendChild(inputAux);
+
+inputAux.select();
+document.execCommand('copy');
+document.body.removeChild(inputAux);
+
+const originalText = elemento.innerHTML;
+elemento.innerHTML = '✨ ¡Copiado!';
+elemento.classList.add('bg-yellow-500', 'text-slate-950');
+setTimeout(() => {
+elemento.innerHTML = originalText;
+elemento.classList.remove('bg-yellow-500', 'text-slate-950');
+}, 1500);
+}
+
+// ======================================================== -->
+// LOGICA DE LA VISTA DEL JUGADOR (MOTOR DE CANVAS) -->
+// ======================================================== -->
+let canvas, ctx, isDrawing = false, totalPixels = 0, currentTicket = null;
+
+function initPlayerGame(id) {
+
+const tickets = DB.getTickets();
+currentTicket = tickets.find(t => t.id === id);
+
+// Resguardo Dinámico para Demostración Instantánea:
+// Si abres el link en otro dispositivo/navegador diferente donde el localStorage está vacío,
+// creamos automáticamente un boleto válido en ese entorno para que nunca falle la demostración externa.
+if (!currentTicket) {
+currentTicket = {
+id: id,
+jugador: 'Invitado de Honor',
+fecha: new Date().toLocaleDateString(),
+celdas: [...CONFIG_PREMIOS].sort(() => Math.random() - 0.5),
+esGanador: Math.random() < PROBABILIDAD_GANAR,
+premio: '100.000',
+estado: 'Disponible'
+};
+if(currentTicket.esGanador) {
+currentTicket.celdas = ['100.000', '100.000', '100.000', '5.000', '20.000', 'Inténtalo de nuevo', '500.000', '20.000', '5.000'].sort(() => Math.random() - 0.5);
+} else {
+
+currentTicket.celdas = ['5.000', '5.000', '20.000', '20.000', '100.000', '100.000', 'Inténtalo de nuevo', 'Inténtalo de nuevo', '500.000'].sort(() => Math.random() - 0.5);
+}
+const lot = DB.getTickets();
+lot.push(currentTicket);
+localStorage.setItem('raspaditas_tickets', JSON.stringify(lot));
+}
+
+// Bifurcar pantallas según el estado del boleto
+if (currentTicket.estado === 'Raspado') {
+document.getElementById('player-scratched-screen').classList.remove('hidden');
+document.getElementById('player-game-screen').classList.add('hidden');
+return;
+}
+
+document.getElementById('player-game-screen').classList.remove('hidden');
+document.getElementById('player-greeting').innerText = ¡Hola,${escapeHTML(currentTicket.jugador)}!`;
+
+// Construir la rejilla de premios oculta de 3x3
+const gridContainer = document.getElementById('scratch-grid');
+
+gridContainer.innerHTML = '';
+currentTicket.celdas.forEach(val => {
+const div = document.createElement('div');
+// Estilizar la celda interna de premio
+const esDinero = val !== 'Inténtalo de nuevo';
+div.className = flex flex-col items-center justify-center rounded-xl p-1 text-center font-bold border transition-all ${
+esDinero ? 'bg-slate-900 border-slate-800 text-yellow-400 text-sm' : 'bg-slate-900 border-slate-800 text-slate-400 text-xs'
+}; div.innerHTML = esDinero ?<span class="text-[10px] text-slate-500 font-normal uppercase tracking-wider block">Premio</span><span class="font-extrabold text-base">${val}&lt;/span> : <span class="text-center leading-tight"&gt;${val}</span>`;
+gridContainer.appendChild(div);
+});
+
+// Inicializar el Lienzo HTML5 Canvas para el raspado táctil/mouse
+canvas = document.getElementById('scratch-canvas');
+ctx = canvas.getContext('2d', { willReadFrequently: true });
+
+setupCanvasOverlay();
+
+// Configurar Listeners de Entrada Unificados (Ratón y Pantallas Táctiles Móviles)
+
+canvas.onpointerdown = (e) => { isDrawing = true; scratch(e); e.preventDefault(); };
+canvas.onpointermove = (e) => { if (isDrawing) { scratch(e); Sonidos.playScratch(); } e.preventDefault(); };
+canvas.onpointerup = () => { isDrawing = false; checkScratchPercentage(); };
+canvas.onpointerleave = () => { isDrawing = false; };
+
+// Configurar el botón de retorno de WhatsApp para el jugador
+document.getElementById('btn-player-whatsapp').onclick = () => {
+const msg = ¡Ya raspé mi boleto! Fui clasificado como:${currentTicket.esGanador ? '🏆 ¡GANADOR de $' + currentTicket.premio + '!' : '❌ No obtuve premio esta vez.'};
+window.open(https://whatsapp.com{encodeURIComponent(msg)}, '_blank');
+};
+}
+
+function setupCanvasOverlay() {
+// Fondo gris metálico elegante con gradiente y textura suave
+const grad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+grad.addColorStop(0, '#94a3b8');
+grad.addColorStop(0.5, '#cbd5e1');
+grad.addColorStop(1, '#64748b');
+ctx.fillStyle = grad;
+
+ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+// Patrón decorativo de puntos de seguridad de raspado
+ctx.fillStyle = 'rgba(255,255,255,0.15)';
+for (let x = 0; x < canvas.width; x += 10) {
+for (let y = 0; y < canvas.height; y += 10) {
+ctx.fillRect(x + (y % 20 === 0 ? 5 : 0), y, 2, 2);
+}
+}
+
+// Texto guía centralizado
+ctx.font = 'bold 22px Inter, system-ui, sans-serif';
+ctx.fillStyle = '#0f172a';
+ctx.textAlign = 'center';
+ctx.textBaseline = 'middle';
+ctx.shadowColor = 'rgba(255,255,255,0.4)';
+ctx.shadowBlur = 4;
+ctx.fillText('✨ RASPA AQUÍ ✨', canvas.width / 2, canvas.height / 2);
+
+// Reset de sombras de renderizado
+ctx.shadowBlur = 0;
+
+totalPixels = canvas.width * canvas.height;
+}
+
+function scratch(e) {
+const rect = canvas.getBoundingClientRect();
+// Calcular posiciones exactas unificando escalado físico vs CSS
+const x = (e.clientX - rect.left) * (canvas.width / rect.width);
+const y = (e.clientY - rect.top) * (canvas.height / rect.height);
+
+// Operación clave: borrar la capa de pintura gris
+ctx.globalCompositeOperation = 'destination-out';
+ctx.lineWidth = 40; // Diámetro del raspador redondo óptimo para móviles
+ctx.lineCap = 'round';
+ctx.lineJoin = 'round';
+
+if (e.type === 'pointerdown') {
+
+ctx.beginPath();
+ctx.moveTo(x, y);
+ctx.lineTo(x + 0.1, y + 0.1);
+ctx.stroke();
+} else {
+ctx.lineTo(x, y);
+ctx.stroke();
+}
+}
+
+function checkScratchPercentage() {
+// Muestreo optimizado de pixeles para comprobar el progreso (Revisa 1 de cada 32 pixeles)
+const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+const pixels = imgData.data;
+let clearedCount = 0;
+const step = 32;
+
+for (let i = 3; i < pixels.length; i += step * 4) {
+if (pixels[i] === 0) { // Si el canal alpha es cero, está borrado
+
+clearedCount += step;
+}
+}
+
+const porcentaje = (clearedCount / totalPixels) * 100;
+
+// Si el jugador despeja más del 50%, completamos automáticamente la revelación por comodidad
+if (porcentaje > 50 && currentTicket.estado === 'Disponible') {
+canvas.style.opacity = '0';
+setTimeout(() => canvas.classList.add('hidden'), 500);
+finalizarRaspadoBoleto();
+}
+}
+
+function finalizarRaspadoBoleto() {
+// Persistencia del cambio de estado seguro e instantáneo
+const boletoActualizado = DB.marcarComoRaspado(currentTicket.id);
+if (boletoActualizado) {
+currentTicket = boletoActualizado;
+
+}
+
+const card = document.getElementById('result-card');
+const title = document.getElementById('result-title');
+const msg = document.getElementById('result-message');
+const prizeBox = document.getElementById('result-prize-box');
+
+card.classList.remove('hidden');
+setTimeout(() => {
+card.classList.remove('scale-95', 'opacity-0');
+card.classList.add('scale-100', 'opacity-100');
+}, 50);
+
+if (currentTicket.esGanador) {
+title.innerText = '¡Felicidades! 🎉';
+title.className = 'text-2xl font-extrabold text-yellow-400 animate-bounce';
+msg.innerText = '¡Has encontrado 3 cantidades idénticas y ganaste el premio mayor!';
+prizeBox.innerText = Premio:${currentTicket.premio}`;
+prizeBox.classList.remove('hidden');
+
+Sonidos.playWin();
+lanzarEfectoConfeti();
+} else {
+title.innerText = '¡Qué Cerca! 🍀';
+title.className = 'text-2xl font-extrabold text-slate-300';
+msg.innerText = 'No se formaron 3 cantidades iguales en esta oportunidad. ¡Sigue probando tu suerte!';
+prizeBox.classList.add('hidden');
+Sonidos.playLose();
+}
+}
+
+// EFECTOS VISUALES SUPLEMENTARIOS (Generación dinámica de partículas)
+function lanzarEfectoConfeti() {
+const container = document.getElementById('confetti-container');
+const colores = ['#f59e0b', '#10b981', '#3b82f6', '#ec4899', '#a855f7'];
+for (let i = 0; i < 70; i++) {
+const el = document.createElement('div');
+el.className = 'confetti';
+el.style.backgroundColor = colores[Math.floor(Math.random() * colores.length)];
+
+el.style.left = Math.random() * 100 + 'vw';
+el.style.top = '-' + (Math.random() * 20) + 'px';
+el.style.transform = scale(${Math.random() * 0.8 + 0.4});
+el.style.animationDelay = Math.random() * 2 + 's';
+el.style.animationDuration = (Math.random() * 2 + 2) + 's';
+container.appendChild(el);
+setTimeout(() => el.remove(), 4000);
+}
+}
+
+// UTILIDADES DE LIMPIEZA Y SEGURIDAD
+function escapeHTML(str) {
+return str.replace(/&/g, "&").replace(/</g, "<").replace(/>/g, ">").replace(/"/g, """).replace(/'/g, "'");
+}
+
+// ESCUCHAS DE SINCRONIZACIÓN ENTRE PESTAÑAS (Intercomunicación nativa en tiempo real)
+window.addEventListener('storage', router);
+window.addEventListener('storage_update', () => {
+if (!new URLSearchParams(window.location.search).get('ticket')) {
+
+renderTicketsTable();
+updateStats();
+}
+});
+
+// Arranque de la Aplicación en Carga de DOM
+window.onload = () => {
+router();
+};
+</script>
+</body>
+</html>
